@@ -43,7 +43,7 @@ export async function getApplicationsByCustomerName(customerName: string) {
 }
 
 // Submit a new loan application
-export async function submitLoanApplication(customerName: string, loanAmount: number) {
+export async function submitLoanApplication(customerName: string, loanAmount: number, loanType: string = 'Personal') {
   try {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('Not authenticated');
@@ -57,6 +57,7 @@ export async function submitLoanApplication(customerName: string, loanAmount: nu
         customer_id: user.user.id,
         customer_name: customerName,
         loan_amount: loanAmount,
+        loan_type: loanType,
         status: 'Pending'
       })
       .select()
@@ -96,6 +97,22 @@ export async function updateApplicationStatus(
   evidenceRequest?: string
 ) {
   try {
+    // Check if user is admin
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw new Error('Not authenticated');
+    
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userData.user.id)
+      .single();
+      
+    if (profileError) throw profileError;
+    
+    if (profileData.role !== 'admin') {
+      throw new Error('Only managers can update application statuses');
+    }
+    
     const updateData: any = { status };
     
     if (rejectionReason) {
@@ -103,7 +120,7 @@ export async function updateApplicationStatus(
     }
     
     if (evidenceRequest) {
-      updateData.evidence_request = evidenceRequest;
+      updateData.evidence_required = evidenceRequest;
     }
     
     const { error } = await supabase
@@ -115,7 +132,7 @@ export async function updateApplicationStatus(
     return true;
   } catch (error) {
     console.error('Error updating application status:', error);
-    toast.error('Failed to update application status');
+    toast.error(error.message || 'Failed to update application status');
     return false;
   }
 }
@@ -129,6 +146,22 @@ export async function getAllLoanApplications(
   sortOrder: 'asc' | 'desc' = 'desc'
 ) {
   try {
+    // Check if user is admin
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw new Error('Not authenticated');
+    
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userData.user.id)
+      .single();
+      
+    if (profileError) throw profileError;
+    
+    if (profileData.role !== 'admin') {
+      throw new Error('Only managers can view all loan applications');
+    }
+    
     let query = supabase
       .from('loan_applications')
       .select('*', { count: 'exact' });
@@ -159,7 +192,7 @@ export async function getAllLoanApplications(
     };
   } catch (error) {
     console.error('Error fetching all loan applications:', error);
-    toast.error('Failed to load loan applications');
+    toast.error(error.message || 'Failed to load loan applications');
     return {
       data: [],
       totalCount: 0,
@@ -192,6 +225,22 @@ export async function getApplicationIds() {
 // Search loan applications by various criteria (admin only)
 export async function searchLoanApplications(searchTerm: string) {
   try {
+    // Check if user is admin
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw new Error('Not authenticated');
+    
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userData.user.id)
+      .single();
+      
+    if (profileError) throw profileError;
+    
+    if (profileData.role !== 'admin') {
+      throw new Error('Only managers can search loan applications');
+    }
+    
     const { data, error } = await supabase
       .from('loan_applications')
       .select('*')
@@ -202,7 +251,7 @@ export async function searchLoanApplications(searchTerm: string) {
     return data || [];
   } catch (error) {
     console.error('Error searching loan applications:', error);
-    toast.error('Failed to search loan applications');
+    toast.error(error.message || 'Failed to search loan applications');
     return [];
   }
 }

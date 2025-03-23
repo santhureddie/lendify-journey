@@ -13,21 +13,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getUserLoanApplications, updateApplicationStatus } from '@/utils/supabaseUtils';
+import { getUserLoanApplications } from '@/utils/supabaseUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatDateTime, getStatusColorClass } from '@/utils/formatters';
 import { toast } from 'sonner';
-import { LockIcon, UnlockIcon } from 'lucide-react';
+import { LockIcon } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useAuth();
-  const [adminMode, setAdminMode] = useState(false);
+  const [expandedApplication, setExpandedApplication] = useState<string | null>(null);
   
   const { 
     data: applications = [], 
     isLoading, 
-    error,
-    refetch 
+    error
   } = useQuery({
     queryKey: ['userApplications', user?.id],
     queryFn: getUserLoanApplications,
@@ -41,14 +40,11 @@ const Profile = () => {
     }
   }, [error]);
 
-  const handleStatusChange = async (applicationId: string, newStatus: 'Pending' | 'Approved' | 'Rejected') => {
-    try {
-      await updateApplicationStatus(applicationId, newStatus);
-      toast.success(`Application status updated to ${newStatus}`);
-      refetch();
-    } catch (error) {
-      toast.error('Failed to update application status');
-      console.error('Error updating status:', error);
+  const toggleApplicationDetails = (applicationId: string) => {
+    if (expandedApplication === applicationId) {
+      setExpandedApplication(null);
+    } else {
+      setExpandedApplication(applicationId);
     }
   };
 
@@ -59,16 +55,6 @@ const Profile = () => {
         <PageContainer 
           title="My Applications" 
           subtitle="View and track all your loan applications"
-          action={
-            <Button 
-              variant="outline" 
-              onClick={() => setAdminMode(!adminMode)}
-              className="flex items-center gap-2"
-              size="icon"
-            >
-              {adminMode ? <LockIcon size={16} /> : <UnlockIcon size={16} />}
-            </Button>
-          }
         >
           {isLoading ? (
             <Card className="p-6 text-center">
@@ -83,51 +69,81 @@ const Profile = () => {
                     <TableHead>Loan Amount</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created At</TableHead>
-                    {adminMode && <TableHead>Actions</TableHead>}
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {applications.map((app) => (
-                    <TableRow key={app.application_id}>
-                      <TableCell className="font-medium">{app.application_id}</TableCell>
-                      <TableCell>{formatCurrency(app.loan_amount)}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColorClass(app.status)}`}>
-                          {app.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>{formatDateTime(app.created_at)}</TableCell>
-                      {adminMode && (
+                    <React.Fragment key={app.application_id}>
+                      <TableRow onClick={() => toggleApplicationDetails(app.application_id)} className="cursor-pointer hover:bg-gray-50">
+                        <TableCell className="font-medium">{app.application_id}</TableCell>
+                        <TableCell>{formatCurrency(app.loan_amount)}</TableCell>
                         <TableCell>
-                          <div className="flex space-x-2">
-                            <Button 
-                              size="sm" 
-                              variant={app.status === 'Approved' ? 'default' : 'outline'} 
-                              className="text-xs h-8"
-                              onClick={() => handleStatusChange(app.application_id, 'Approved')}
-                            >
-                              Approve
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant={app.status === 'Rejected' ? 'destructive' : 'outline'} 
-                              className="text-xs h-8"
-                              onClick={() => handleStatusChange(app.application_id, 'Rejected')}
-                            >
-                              Reject
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant={app.status === 'Pending' ? 'secondary' : 'outline'} 
-                              className="text-xs h-8"
-                              onClick={() => handleStatusChange(app.application_id, 'Pending')}
-                            >
-                              Pending
-                            </Button>
-                          </div>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColorClass(app.status)}`}>
+                            {app.status}
+                          </span>
                         </TableCell>
+                        <TableCell>{formatDateTime(app.created_at)}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={(e) => {
+                            e.stopPropagation();
+                            toggleApplicationDetails(app.application_id);
+                          }}>
+                            {expandedApplication === app.application_id ? "Hide Details" : "View Details"}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      
+                      {expandedApplication === app.application_id && (
+                        <TableRow className="bg-gray-50/50">
+                          <TableCell colSpan={5} className="p-4">
+                            <div className="rounded-lg bg-white p-4 shadow-inner border border-gray-100">
+                              <h4 className="font-semibold mb-2">Application Details</h4>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                  <p className="text-sm text-gray-500">Loan Type</p>
+                                  <p>{app.loan_type || "Personal"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-500">Customer Name</p>
+                                  <p>{app.customer_name}</p>
+                                </div>
+                              </div>
+                              
+                              {app.status === 'Rejected' && app.rejection_reason && (
+                                <div className="mt-4 p-3 bg-red-50 rounded-md border border-red-100">
+                                  <h5 className="text-sm font-medium text-red-800 mb-1">Reason for Rejection</h5>
+                                  <p className="text-sm text-red-700">{app.rejection_reason}</p>
+                                </div>
+                              )}
+                              
+                              {app.status === 'Evidence Required' && app.evidence_required && (
+                                <div className="mt-4 p-3 bg-yellow-50 rounded-md border border-yellow-100">
+                                  <h5 className="text-sm font-medium text-yellow-800 mb-1">Evidence Required</h5>
+                                  <p className="text-sm text-yellow-700">{app.evidence_required}</p>
+                                  
+                                  <div className="mt-3">
+                                    <Button size="sm" variant="outline">
+                                      Upload Evidence
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="mt-4 border-t pt-4 flex justify-between items-center">
+                                <p className="text-sm text-gray-500">
+                                  <span className="inline-flex items-center gap-1">
+                                    <LockIcon className="h-3 w-3" />
+                                    Only managers can change application status
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       )}
-                    </TableRow>
+                    </React.Fragment>
                   ))}
                 </TableBody>
               </Table>

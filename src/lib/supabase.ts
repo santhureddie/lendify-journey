@@ -33,6 +33,7 @@ export type Profile = {
   created_at: string;
   email: string;
   full_name: string;
+  role?: string;
 }
 
 export type LoanApplication = {
@@ -41,8 +42,11 @@ export type LoanApplication = {
   customer_id: string;
   customer_name: string;
   loan_amount: number;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Evidence Required';
   application_id: string;
+  loan_type?: string;
+  rejection_reason?: string;
+  evidence_required?: string;
 }
 
 export type Payment = {

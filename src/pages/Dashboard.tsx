@@ -66,6 +66,53 @@ const Dashboard = () => {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isEvidenceDialogOpen, setIsEvidenceDialogOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [createManagerLoading, setCreateManagerLoading] = useState(false);
+
+  // Function to create a manager account
+  const createManagerAccount = async () => {
+    try {
+      setCreateManagerLoading(true);
+      
+      // Sign up manager with email and password
+      const { data, error } = await supabase.auth.signUp({
+        email: 'santhureddie@gmail.com',
+        password: 'Santhosh',
+        options: {
+          data: {
+            full_name: 'Manager',
+            role: 'admin'
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Update the user's profile to have an admin role
+      if (data.user) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ role: 'admin' })
+          .eq('id', data.user.id);
+          
+        if (updateError) throw updateError;
+        
+        toast({
+          title: "Manager account created",
+          description: "Login with email: santhureddie@gmail.com and password: Santhosh",
+        });
+      }
+      
+      setCreateManagerLoading(false);
+    } catch (error) {
+      console.error('Error creating manager account:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create manager account. It might already exist.",
+      });
+      setCreateManagerLoading(false);
+    }
+  };
 
   // Load applications from Supabase
   useEffect(() => {
@@ -217,7 +264,36 @@ const Dashboard = () => {
 
   // Redirect if not admin
   if (!isAdmin) {
-    return <Navigate to="/" replace />;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-4">Manager Login Required</h1>
+          <p className="mb-6">You need manager privileges to access the dashboard.</p>
+          
+          <Button 
+            onClick={createManagerAccount} 
+            disabled={createManagerLoading}
+            className="w-full"
+          >
+            {createManagerLoading ? "Creating..." : "Create Manager Account"}
+          </Button>
+          
+          <div className="mt-4 text-sm text-gray-600">
+            <p>This will create a manager account with:</p>
+            <ul className="list-disc pl-5 mt-2">
+              <li>Email: santhureddie@gmail.com</li>
+              <li>Password: Santhosh</li>
+            </ul>
+          </div>
+          
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <Button variant="outline" onClick={() => window.location.href = '/login'} className="w-full">
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

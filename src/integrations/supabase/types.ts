@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      loan_applications: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          customer_id: string
+          customer_name: string
+          id: string
+          loan_amount: number
+          status: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          customer_id: string
+          customer_name: string
+          id?: string
+          loan_amount: number
+          status: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          customer_id?: string
+          customer_name?: string
+          id?: string
+          loan_amount?: number
+          status?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -83,6 +113,65 @@ export type Database = {
           status?: string
           total?: number
           user_email?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          application_id: string
+          created_at: string | null
+          customer_id: string
+          id: string
+          payment_id: string
+        }
+        Insert: {
+          amount: number
+          application_id: string
+          created_at?: string | null
+          customer_id: string
+          id?: string
+          payment_id: string
+        }
+        Update: {
+          amount?: number
+          application_id?: string
+          created_at?: string | null
+          customer_id?: string
+          id?: string
+          payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "loan_applications"
+            referencedColumns: ["application_id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

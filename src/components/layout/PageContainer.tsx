@@ -6,11 +6,12 @@ export interface PageContainerProps {
   subtitle?: string;
   children: React.ReactNode;
   action?: React.ReactNode;
+  className?: string;
 }
 
-const PageContainer = ({ title, subtitle, children, action }: PageContainerProps) => {
+const PageContainer = ({ title, subtitle, children, action, className }: PageContainerProps) => {
   return (
-    <div className="container px-4 py-8 mx-auto max-w-7xl">
+    <div className={`container px-4 py-8 mx-auto max-w-7xl ${className || ''}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{title}</h1>

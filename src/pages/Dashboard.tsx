@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
+import PageContainer from '@/components/layout/PageContainer';
 import {
   Table,
   TableBody,

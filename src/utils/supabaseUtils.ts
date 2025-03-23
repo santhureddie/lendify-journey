@@ -91,12 +91,24 @@ export async function getApplicationById(applicationId: string) {
 // Update application status (admin only)
 export async function updateApplicationStatus(
   applicationId: string, 
-  status: 'Pending' | 'Approved' | 'Rejected'
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Evidence Required',
+  rejectionReason?: string,
+  evidenceRequest?: string
 ) {
   try {
+    const updateData: any = { status };
+    
+    if (rejectionReason) {
+      updateData.rejection_reason = rejectionReason;
+    }
+    
+    if (evidenceRequest) {
+      updateData.evidence_request = evidenceRequest;
+    }
+    
     const { error } = await supabase
       .from('loan_applications')
-      .update({ status })
+      .update(updateData)
       .eq('application_id', applicationId);
       
     if (error) throw error;
@@ -105,6 +117,56 @@ export async function updateApplicationStatus(
     console.error('Error updating application status:', error);
     toast.error('Failed to update application status');
     return false;
+  }
+}
+
+// Get all loan applications (admin only)
+export async function getAllLoanApplications(
+  page = 1, 
+  pageSize = 10,
+  status?: string,
+  sortBy: 'created_at' | 'loan_amount' = 'created_at',
+  sortOrder: 'asc' | 'desc' = 'desc'
+) {
+  try {
+    let query = supabase
+      .from('loan_applications')
+      .select('*', { count: 'exact' });
+    
+    // Apply status filter if provided
+    if (status) {
+      query = query.eq('status', status);
+    }
+    
+    // Apply sorting
+    query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+    
+    // Apply pagination
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    query = query.range(from, to);
+    
+    const { data, error, count } = await query;
+    
+    if (error) throw error;
+    
+    return {
+      data: data || [],
+      totalCount: count || 0,
+      page,
+      pageSize,
+      totalPages: count ? Math.ceil(count / pageSize) : 0
+    };
+  } catch (error) {
+    console.error('Error fetching all loan applications:', error);
+    toast.error('Failed to load loan applications');
+    return {
+      data: [],
+      totalCount: 0,
+      page,
+      pageSize,
+      totalPages: 0
+    };
   }
 }
 
@@ -123,6 +185,24 @@ export async function getApplicationIds() {
     return data.map(app => app.application_id) || [];
   } catch (error) {
     console.error('Error fetching application IDs:', error);
+    return [];
+  }
+}
+
+// Search loan applications by various criteria (admin only)
+export async function searchLoanApplications(searchTerm: string) {
+  try {
+    const { data, error } = await supabase
+      .from('loan_applications')
+      .select('*')
+      .or(`customer_name.ilike.%${searchTerm}%,application_id.ilike.%${searchTerm}%`)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error searching loan applications:', error);
+    toast.error('Failed to search loan applications');
     return [];
   }
 }

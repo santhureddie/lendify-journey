@@ -7,6 +7,7 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{
     error: any | null;
     data: any | null;
@@ -24,12 +25,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Check if user has admin role (from JWT claims)
+      if (session?.user) {
+        const isAdminUser = session.user.app_metadata?.role === 'admin';
+        setIsAdmin(isAdminUser);
+      }
+      
       setIsLoading(false);
     });
 
@@ -38,6 +47,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Check if user has admin role (from JWT claims)
+        if (session?.user) {
+          const isAdminUser = session.user.app_metadata?.role === 'admin';
+          setIsAdmin(isAdminUser);
+        } else {
+          setIsAdmin(false);
+        }
+        
         setIsLoading(false);
       }
     );
@@ -80,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isLoading, isAdmin, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

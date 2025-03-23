@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import ApplyLoan from "./pages/ApplyLoan";
 import Profile from "./pages/Profile";
 import Payments from "./pages/Payments";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -25,6 +26,25 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Admin route component
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading, isAdmin } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
   }
   
   return <>{children}</>;
@@ -50,6 +70,11 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <Payments />
         </ProtectedRoute>
+      } />
+      <Route path="/dashboard" element={
+        <AdminRoute>
+          <Dashboard />
+        </AdminRoute>
       } />
       <Route path="*" element={<NotFound />} />
     </Routes>

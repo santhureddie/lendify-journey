@@ -6,40 +6,46 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { getApplicationIds, savePayment, getApplicationById } from '@/utils/storageUtils';
+import { getApplicationIds, getApplicationById, submitPayment } from '@/utils/supabaseUtils';
 import { validatePaymentAmount, validateApplicationId } from '@/utils/validators';
 import { formatCurrency } from '@/utils/formatters';
+import { useQuery } from '@tanstack/react-query';
 
 const PaymentForm = ({ onPaymentAdded }: { onPaymentAdded: () => void }) => {
   const [applicationId, setApplicationId] = useState('');
   const [amount, setAmount] = useState('');
-  const [applicationIds, setApplicationIds] = useState<string[]>([]);
   const [errors, setErrors] = useState({
     applicationId: '',
     amount: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [applicationDetail, setApplicationDetail] = useState<{ customerName: string; loanAmount: number } | null>(null);
+  const [applicationDetail, setApplicationDetail] = useState<{ customer_name: string; loan_amount: number } | null>(null);
 
-  useEffect(() => {
-    // Fetch application IDs
-    setApplicationIds(getApplicationIds());
-  }, []);
+  // Get application IDs
+  const { data: applicationIds = [] } = useQuery({
+    queryKey: ['applicationIds'],
+    queryFn: getApplicationIds
+  });
 
+  // Fetch application details when ID changes
   useEffect(() => {
-    if (applicationId) {
-      const app = getApplicationById(applicationId);
-      if (app) {
-        setApplicationDetail({
-          customerName: app.customerName,
-          loanAmount: app.loanAmount
-        });
+    const fetchApplicationDetails = async () => {
+      if (applicationId) {
+        const app = await getApplicationById(applicationId);
+        if (app) {
+          setApplicationDetail({
+            customer_name: app.customer_name,
+            loan_amount: app.loan_amount
+          });
+        } else {
+          setApplicationDetail(null);
+        }
       } else {
         setApplicationDetail(null);
       }
-    } else {
-      setApplicationDetail(null);
-    }
+    };
+
+    fetchApplicationDetails();
   }, [applicationId]);
 
   const validateForm = () => {
@@ -65,7 +71,7 @@ const PaymentForm = ({ onPaymentAdded }: { onPaymentAdded: () => void }) => {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -75,15 +81,15 @@ const PaymentForm = ({ onPaymentAdded }: { onPaymentAdded: () => void }) => {
     setIsSubmitting(true);
     
     try {
-      // Save payment
-      const newPayment = savePayment({
+      // Submit payment to Supabase
+      const newPayment = await submitPayment(
         applicationId,
-        amount: parseFloat(amount)
-      });
+        parseFloat(amount)
+      );
       
       // Show success message
       toast.success('Payment logged successfully!', {
-        description: `Payment ID: ${newPayment.paymentId}`
+        description: `Payment ID: ${newPayment.payment_id}`
       });
       
       // Reset form
@@ -137,8 +143,8 @@ const PaymentForm = ({ onPaymentAdded }: { onPaymentAdded: () => void }) => {
           
           {applicationDetail && (
             <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2 rounded">
-              <p><span className="font-medium">Customer:</span> {applicationDetail.customerName}</p>
-              <p><span className="font-medium">Loan Amount:</span> {formatCurrency(applicationDetail.loanAmount)}</p>
+              <p><span className="font-medium">Customer:</span> {applicationDetail.customer_name}</p>
+              <p><span className="font-medium">Loan Amount:</span> {formatCurrency(applicationDetail.loan_amount)}</p>
             </div>
           )}
         </div>

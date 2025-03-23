@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { saveLoanApplication } from '@/utils/storageUtils';
+import { submitLoanApplication } from '@/utils/supabaseUtils';
+import { useAuth } from '@/contexts/AuthContext';
 import { validateName, validateLoanAmount } from '@/utils/validators';
 
 const ApplicationForm = () => {
+  const { user } = useAuth();
   const [customerName, setCustomerName] = useState('');
   const [loanAmount, setLoanAmount] = useState('');
   const [errors, setErrors] = useState({
@@ -40,8 +42,13 @@ const ApplicationForm = () => {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast.error('You must be logged in to submit a loan application');
+      return;
+    }
     
     if (!validateForm()) {
       return;
@@ -50,15 +57,15 @@ const ApplicationForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Save application
-      const newApplication = saveLoanApplication({
+      // Submit application to Supabase
+      const newApplication = await submitLoanApplication(
         customerName,
-        loanAmount: parseFloat(loanAmount)
-      });
+        parseFloat(loanAmount)
+      );
       
       // Show success message
       toast.success('Loan application submitted successfully!', {
-        description: `Application ID: ${newApplication.applicationId}`
+        description: `Application ID: ${newApplication.application_id}`
       });
       
       // Reset form

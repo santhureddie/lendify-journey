@@ -15,8 +15,11 @@ export type Database = {
           created_at: string | null
           customer_id: string
           customer_name: string
+          evidence_required: string | null
           id: string
           loan_amount: number
+          loan_type: string | null
+          rejection_reason: string | null
           status: string
         }
         Insert: {
@@ -24,8 +27,11 @@ export type Database = {
           created_at?: string | null
           customer_id: string
           customer_name: string
+          evidence_required?: string | null
           id?: string
           loan_amount: number
+          loan_type?: string | null
+          rejection_reason?: string | null
           status: string
         }
         Update: {
@@ -33,8 +39,11 @@ export type Database = {
           created_at?: string | null
           customer_id?: string
           customer_name?: string
+          evidence_required?: string | null
           id?: string
           loan_amount?: number
+          loan_type?: string | null
+          rejection_reason?: string | null
           status?: string
         }
         Relationships: []
@@ -157,6 +166,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          role: string | null
           updated_at: string | null
         }
         Insert: {
@@ -164,6 +174,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          role?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -171,6 +182,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          role?: string | null
           updated_at?: string | null
         }
         Relationships: []

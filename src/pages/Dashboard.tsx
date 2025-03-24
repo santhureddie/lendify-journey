@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import {
@@ -37,7 +36,6 @@ import { formatCurrency, formatDate } from '@/utils/formatters';
 import { supabase } from '@/integrations/supabase/client';
 import { Navigate } from 'react-router-dom';
 
-// Define the loan application type
 type LoanStatus = "Pending" | "Approved" | "Rejected" | "Evidence Required";
 
 interface LoanApplication {
@@ -68,26 +66,22 @@ const Dashboard = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [createManagerLoading, setCreateManagerLoading] = useState(false);
 
-  // Function to create a manager account
   const createManagerAccount = async () => {
     try {
       setCreateManagerLoading(true);
       
-      // Sign up manager with email and password
       const { data, error } = await supabase.auth.signUp({
         email: 'santhureddie@gmail.com',
         password: 'Santhosh',
         options: {
           data: {
             full_name: 'Manager',
-            role: 'admin'
           }
         }
       });
       
       if (error) throw error;
       
-      // Update the user's profile to have an admin role
       if (data.user) {
         const { error: updateError } = await supabase
           .from('profiles')
@@ -114,7 +108,6 @@ const Dashboard = () => {
     }
   };
 
-  // Load applications from Supabase
   useEffect(() => {
     const fetchApplications = async () => {
       try {
@@ -127,7 +120,6 @@ const Dashboard = () => {
         }
 
         if (data) {
-          // Cast the status from string to LoanStatus
           const typedData = data.map(app => ({
             ...app,
             status: app.status as LoanStatus
@@ -152,16 +144,13 @@ const Dashboard = () => {
     fetchApplications();
   }, [toast]);
 
-  // Filter applications based on search term and status filter
   useEffect(() => {
     let filtered = [...applications];
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(app => app.status === statusFilter);
     }
 
-    // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -174,7 +163,6 @@ const Dashboard = () => {
     setFilteredApplications(filtered);
   }, [applications, searchTerm, statusFilter]);
 
-  // Handle application status update
   const updateApplicationStatus = async (applicationId: string, status: LoanStatus, additionalData: Record<string, string> = {}) => {
     try {
       const { error } = await supabase
@@ -190,7 +178,6 @@ const Dashboard = () => {
         throw error;
       }
 
-      // Update local state
       setApplications(prevApplications =>
         prevApplications.map(app =>
           app.id === applicationId
@@ -204,7 +191,6 @@ const Dashboard = () => {
         description: `Application ${status.toLowerCase()}`,
       });
       
-      // Close any open dialogs
       setIsRejectDialogOpen(false);
       setIsEvidenceDialogOpen(false);
       setRejectionReason('');
@@ -220,38 +206,32 @@ const Dashboard = () => {
     }
   };
 
-  // Handle application approval
   const handleApprove = (application: LoanApplication) => {
     updateApplicationStatus(application.id, "Approved");
   };
 
-  // Handle rejection dialog open
   const openRejectDialog = (application: LoanApplication) => {
     setSelectedApplication(application);
     setIsRejectDialogOpen(true);
   };
 
-  // Handle evidence dialog open
   const openEvidenceDialog = (application: LoanApplication) => {
     setSelectedApplication(application);
     setIsEvidenceDialogOpen(true);
   };
 
-  // Handle application rejection
   const handleReject = () => {
     if (selectedApplication && rejectionReason) {
       updateApplicationStatus(selectedApplication.id, "Rejected", { rejection_reason: rejectionReason });
     }
   };
 
-  // Handle evidence request
   const handleRequestEvidence = () => {
     if (selectedApplication && evidenceRequired) {
       updateApplicationStatus(selectedApplication.id, "Evidence Required", { evidence_required: evidenceRequired });
     }
   };
 
-  // Render loading state
   if (isLoading || !isLoaded) {
     return (
       <PageContainer title="Dashboard">
@@ -262,7 +242,6 @@ const Dashboard = () => {
     );
   }
 
-  // Redirect if not admin
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -301,7 +280,6 @@ const Dashboard = () => {
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Loan Applications Dashboard</h1>
         
-        {/* Filters and search */}
         <div className="flex flex-col md:flex-row gap-4 justify-between">
           <div className="relative w-full md:w-1/3">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -327,7 +305,6 @@ const Dashboard = () => {
           </Select>
         </div>
         
-        {/* Applications table */}
         <Table>
           <TableCaption>List of loan applications</TableCaption>
           <TableHeader>
@@ -429,7 +406,6 @@ const Dashboard = () => {
         </Table>
       </div>
 
-      {/* Rejection Dialog */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -460,7 +436,6 @@ const Dashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Evidence Required Dialog */}
       <Dialog open={isEvidenceDialogOpen} onOpenChange={setIsEvidenceDialogOpen}>
         <DialogContent>
           <DialogHeader>

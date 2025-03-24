@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { generateId } from '@/utils/storageUtils';
 import { toast } from 'sonner';
 

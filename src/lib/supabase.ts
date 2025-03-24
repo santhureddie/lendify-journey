@@ -31,6 +31,7 @@ export const supabase = createClient(
 export type Profile = {
   id: string;
   created_at: string;
+  updated_at?: string;
   email: string;
   full_name: string;
   role?: string;

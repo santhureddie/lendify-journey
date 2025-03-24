@@ -33,14 +33,18 @@ const Register = () => {
     setIsLoading(true);
     
     try {
+      console.log("Submitting registration form for:", email);
       const { error } = await signUp(email, password, fullName);
       
       if (error) {
-        toast.error(error.message);
+        console.error("Registration error from signUp:", error);
+        toast.error(error.message || 'An error occurred during registration');
+        setIsLoading(false);
         return;
       }
       
       // Success
+      console.log("Registration successful, redirecting to login");
       toast.success('Registration successful. Please check your email to confirm your account.');
       navigate('/login');
     } catch (error) {

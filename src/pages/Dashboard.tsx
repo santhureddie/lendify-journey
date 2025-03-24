@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import {
@@ -120,6 +121,7 @@ const Dashboard = () => {
         }
 
         if (data) {
+          // Explicitly cast the status field to ensure TypeScript knows it matches LoanStatus type
           const typedData = data.map(app => ({
             ...app,
             status: app.status as LoanStatus
@@ -244,34 +246,36 @@ const Dashboard = () => {
 
   if (!isAdmin) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-4">Manager Login Required</h1>
-          <p className="mb-6">You need manager privileges to access the dashboard.</p>
-          
-          <Button 
-            onClick={createManagerAccount} 
-            disabled={createManagerLoading}
-            className="w-full"
-          >
-            {createManagerLoading ? "Creating..." : "Create Manager Account"}
-          </Button>
-          
-          <div className="mt-4 text-sm text-gray-600">
-            <p>This will create a manager account with:</p>
-            <ul className="list-disc pl-5 mt-2">
-              <li>Email: santhureddie@gmail.com</li>
-              <li>Password: Santhosh</li>
-            </ul>
-          </div>
-          
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <Button variant="outline" onClick={() => window.location.href = '/login'} className="w-full">
-              Go to Login
+      <PageContainer title="Access Restricted">
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold mb-4">Manager Login Required</h1>
+            <p className="mb-6">You need manager privileges to access the dashboard.</p>
+            
+            <Button 
+              onClick={createManagerAccount} 
+              disabled={createManagerLoading}
+              className="w-full"
+            >
+              {createManagerLoading ? "Creating..." : "Create Manager Account"}
             </Button>
+            
+            <div className="mt-4 text-sm text-gray-600">
+              <p>This will create a manager account with:</p>
+              <ul className="list-disc pl-5 mt-2">
+                <li>Email: santhureddie@gmail.com</li>
+                <li>Password: Santhosh</li>
+              </ul>
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <Button variant="outline" onClick={() => window.location.href = '/login'} className="w-full">
+                Go to Login
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 

@@ -29,20 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      // Check if user has admin role
-      if (session?.user) {
-        checkUserIsAdmin(session.user.id);
-      }
-      
-      setIsLoading(false);
-    });
-
-    // Listen for auth changes
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
@@ -59,6 +46,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      // Check if user has admin role
+      if (session?.user) {
+        checkUserIsAdmin(session.user.id);
+      } else {
+        setIsAdmin(false);
+        setIsLoading(false);
+      }
+    }).catch(error => {
+      console.error("Error getting session:", error);
+      setIsLoading(false);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -72,13 +76,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
       
       if (error) {
-        throw error;
+        console.error("Error fetching user role:", error);
+        setIsAdmin(false);
+        setIsLoading(false);
+        return;
       }
       
       setIsAdmin(data?.role === 'admin');
+      setIsLoading(false);
     } catch (error) {
       console.error('Error checking admin status:', error);
       setIsAdmin(false);
+      setIsLoading(false);
     }
   };
 
@@ -98,6 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       return { data, error: null };
     } catch (error) {
+      console.error("Sign in error:", error);
       toast.error('Failed to sign in', { 
         description: error.message || 'Please check your credentials and try again.' 
       });
@@ -120,11 +130,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // If signup was successful, create a profile record
       if (data.user) {
-        await supabase.from('profiles').insert({
+        const { error: profileError } = await supabase.from('profiles').insert({
           id: data.user.id,
           email: email,
           full_name: fullName,
         });
+        
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+        }
         
         toast.success('Account created successfully!', {
           description: 'Please check your email to verify your account.'
@@ -133,6 +147,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { data, error: null };
     } catch (error) {
+      console.error("Sign up error:", error);
       toast.error('Failed to sign up', { 
         description: error.message || 'Please try again later.' 
       });
@@ -141,8 +156,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setIsAdmin(false);
+    try {
+      await supabase.auth.signOut();
+      setIsAdmin(false);
+    } catch (error) {
+      console.error("Sign out error:", error);
+      toast.error('Error signing out');
+    }
   };
 
   return (

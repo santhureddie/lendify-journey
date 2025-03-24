@@ -36,7 +36,8 @@ const Register = () => {
       const { error } = await signUp(email, password, fullName);
       
       if (error) {
-        toast.error(error.message);
+        console.error('Registration error:', error);
+        toast.error(error.message || 'Registration failed');
         return;
       }
       
@@ -45,7 +46,7 @@ const Register = () => {
       navigate('/login');
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error('An error occurred during registration');
+      toast.error('An error occurred during registration. Please try again later.');
     } finally {
       setIsLoading(false);
     }

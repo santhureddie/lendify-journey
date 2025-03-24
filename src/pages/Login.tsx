@@ -29,7 +29,8 @@ const Login = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
-        toast.error(error.message);
+        console.error('Login error:', error);
+        toast.error(error.message || 'Login failed');
         return;
       }
       
@@ -38,7 +39,7 @@ const Login = () => {
       navigate('/profile');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('An error occurred during login');
+      toast.error('An error occurred during login. Please try again later.');
     } finally {
       setIsLoading(false);
     }

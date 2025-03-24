@@ -21,14 +21,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
   
   if (!user) {
@@ -43,14 +36,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading, isAdmin } = useAuth();
   
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
   
   if (!user) {

@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getApplicationsByCustomer, updateApplicationStatus } from '@/utils/storageUtils';
 import { formatCurrency, formatDateTime, getStatusColorClass } from '@/utils/formatters';
-import { LoanApplication } from '@/lib/supabase';
+import { LoanApplication, LoanStatus } from '@/lib/supabase';
 
 interface ApplicationTableProps {
   applications?: LoanApplication[];
   loading?: boolean;
-  updateApplicationStatus?: (id: string, newStatus: 'Pending' | 'Approved' | 'Rejected' | 'Evidence Required', reason?: string) => void;
+  updateApplicationStatus?: (id: string, newStatus: LoanStatus, reason?: string) => void;
 }
 
 const ApplicationsTable = ({ 
@@ -49,7 +49,7 @@ const ApplicationsTable = ({
     }
   };
 
-  const handleStatusChange = (applicationId: string, newStatus: 'Pending' | 'Approved' | 'Rejected' | 'Evidence Required') => {
+  const handleStatusChange = (applicationId: string, newStatus: LoanStatus) => {
     if (externalUpdateStatus) {
       externalUpdateStatus(applicationId, newStatus);
     } else {

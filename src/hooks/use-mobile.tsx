@@ -19,9 +19,12 @@ export const useMediaQuery = (query: string): boolean => {
   return matches;
 };
 
-// Export the original useMobile hook if it exists
+// Export the original useMobile hook
 export const useMobile = () => {
   return useMediaQuery('(max-width: 768px)');
 };
+
+// Also export as useIsMobile for components that import it with this name
+export const useIsMobile = useMobile;
 
 export default useMobile;

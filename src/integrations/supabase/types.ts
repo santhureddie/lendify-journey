@@ -9,42 +9,214 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      documents: {
+        Row: {
+          description: string | null
+          document_type: string
+          file_path: string
+          id: string
+          loan_id: string
+          mime_type: string
+          original_filename: string
+          uploaded_at: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          description?: string | null
+          document_type: string
+          file_path: string
+          id?: string
+          loan_id: string
+          mime_type: string
+          original_filename: string
+          uploaded_at?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          description?: string | null
+          document_type?: string
+          file_path?: string
+          id?: string
+          loan_id?: string
+          mime_type?: string
+          original_filename?: string
+          uploaded_at?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loan_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loan_applications: {
         Row: {
           application_id: string
+          borrower_address: string | null
+          borrower_email: string | null
+          borrower_name: string | null
+          borrower_phone: string | null
           created_at: string | null
           customer_id: string
           customer_name: string
+          employer_name: string | null
+          employment_status: string | null
           evidence_required: string | null
           id: string
+          income_amount: number | null
           loan_amount: number
+          loan_purpose: string | null
           loan_type: string | null
           rejection_reason: string | null
           status: string
         }
         Insert: {
           application_id: string
+          borrower_address?: string | null
+          borrower_email?: string | null
+          borrower_name?: string | null
+          borrower_phone?: string | null
           created_at?: string | null
           customer_id: string
           customer_name: string
+          employer_name?: string | null
+          employment_status?: string | null
           evidence_required?: string | null
           id?: string
+          income_amount?: number | null
           loan_amount: number
+          loan_purpose?: string | null
           loan_type?: string | null
           rejection_reason?: string | null
           status: string
         }
         Update: {
           application_id?: string
+          borrower_address?: string | null
+          borrower_email?: string | null
+          borrower_name?: string | null
+          borrower_phone?: string | null
           created_at?: string | null
           customer_id?: string
           customer_name?: string
+          employer_name?: string | null
+          employment_status?: string | null
           evidence_required?: string | null
           id?: string
+          income_amount?: number | null
           loan_amount?: number
+          loan_purpose?: string | null
           loan_type?: string | null
           rejection_reason?: string | null
           status?: string
+        }
+        Relationships: []
+      }
+      loan_status_updates: {
+        Row: {
+          created_at: string | null
+          id: string
+          loan_id: string
+          reason: string | null
+          status: string
+          updated_by: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          loan_id: string
+          reason?: string | null
+          status: string
+          updated_by: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          loan_id?: string
+          reason?: string | null
+          status?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_status_updates_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loan_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loan_types: {
+        Row: {
+          base_interest_rate: number
+          created_at: string | null
+          description: string | null
+          id: string
+          max_amount: number
+          max_term_months: number
+          min_amount: number
+          min_term_months: number
+          name: string
+        }
+        Insert: {
+          base_interest_rate: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          max_amount: number
+          max_term_months: number
+          min_amount: number
+          min_term_months: number
+          name: string
+        }
+        Update: {
+          base_interest_rate?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          max_amount?: number
+          max_term_months?: number
+          min_amount?: number
+          min_term_months?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -192,7 +364,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_title: string
+          p_message: string
+          p_related_entity_type?: string
+          p_related_entity_id?: string
+        }
+        Returns: string
+      }
+      get_user_role: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

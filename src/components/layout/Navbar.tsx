@@ -9,12 +9,12 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile";
 
 export default function Navbar() {
   const location = useLocation();
   const { pathname } = location;
-  const isMobile = useIsMobile();
+  const isMobile = useMobile();
   const [isOpen, setIsOpen] = useState(false);
   const { user, isAdmin, signOut } = useAuth();
 

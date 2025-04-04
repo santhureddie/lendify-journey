@@ -29,13 +29,15 @@ export type Profile = {
   role?: string;
 }
 
+export type LoanStatus = 'Pending' | 'Approved' | 'Rejected' | 'Evidence Required';
+
 export type LoanApplication = {
   id: string;
   created_at: string;
   customer_id: string;
   customer_name: string;
   loan_amount: number;
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Evidence Required';
+  status: LoanStatus;
   application_id: string;
   loan_type?: string;
   rejection_reason?: string;
